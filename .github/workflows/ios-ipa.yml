@@ -1,4 +1,4 @@
-# 洛雪音乐 iOS 无签名编译脚本（TrollStore专用，官方适配版）
+# 洛雪音乐 iOS 无签名编译脚本（TrollStore专用，自动适配版）
 name: Build iOS IPA (TrollStore)
 on:
   workflow_dispatch:
@@ -28,17 +28,31 @@ jobs:
         run: |
           sudo gem install cocoapods
           cd ios
+          # 先彻底清理旧Pod，再重新安装，确保生成正确的xcworkspace
           pod deintegrate
           pod install --repo-update --verbose
+          # 列出ios目录下的文件，方便排查
+          ls -la
           cd ..
 
       - name: Build unsigned IPA
         run: |
           cd ios
-          # 洛雪音乐官方工程名固定为 lxmusic，直接用官方参数
+          # 🔴 核心修复：自动找到真正的xcworkspace文件，不再硬编码
+          WORKSPACE_FILE=$(find . -maxdepth 1 -name "*.xcworkspace" -type d | head -n 1)
+          if [ -z "$WORKSPACE_FILE" ]; then
+            echo "❌ 错误：未找到xcworkspace工程文件，请检查ios目录结构"
+            exit 1
+          fi
+          # 自动提取工程名和Scheme名
+          SCHEME_NAME=$(basename "$WORKSPACE_FILE" .xcworkspace)
+          echo "✅ 检测到工程文件：$WORKSPACE_FILE"
+          echo "✅ 检测到Scheme名：$SCHEME_NAME"
+
+          # 执行无签名编译
           xcodebuild \
-            -workspace lxmusic.xcworkspace \
-            -scheme lxmusic \
+            -workspace "$WORKSPACE_FILE" \
+            -scheme "$SCHEME_NAME" \
             -configuration Release \
             -sdk iphoneos \
             -derivedDataPath build \
@@ -46,14 +60,22 @@ jobs:
             CODE_SIGNING_REQUIRED=NO \
             ONLY_ACTIVE_ARCH=NO
 
+          # 自动找到编译生成的.app文件
+          APP_PATH=$(find build/Build/Products/Release-iphoneos -name "*.app" -type d | head -n 1)
+          if [ -z "$APP_PATH" ]; then
+            echo "❌ 错误：编译未生成.app文件，请检查编译日志"
+            exit 1
+          fi
+          echo "✅ 编译成功，生成.app文件：$APP_PATH"
+
           # 打包IPA
           mkdir -p Payload
-          cp -R build/Build/Products/Release-iphoneos/lxmusic.app Payload/
-          zip -r lxmusic-troll.ipa Payload/
-          mv lxmusic-troll.ipa ../
+          cp -R "$APP_PATH" Payload/
+          zip -r "${SCHEME_NAME}-troll.ipa" Payload/
+          mv "${SCHEME_NAME}-troll.ipa" ../
 
       - name: Upload IPA
         uses: actions/upload-artifact@v4
         with:
           name: iOS-IPA
-          path: lxmusic-troll.ipa
+          path: ./*-troll.ipa
