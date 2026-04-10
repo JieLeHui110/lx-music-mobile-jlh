@@ -1,22 +1,38 @@
-name: Build iOS
-on: workflow_dispatch
+name: Build iOS (TrollStore) - No Sign
+on:
+  workflow_dispatch:
 
 jobs:
   build:
-    runs-on: macos-latest
+    runs-on: macos-14
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: 20
+          cache: 'npm'
+
       - name: Install dependencies
         run: npm install
-      - name: Build theme
-        run: npm run build:theme
+
       - name: Install CocoaPods
-        run: cd ios && pod install
-      - name: Build IPA
+        run: |
+          sudo gem install cocoapods
+          cd ios && pod install --verbose && cd ..
+
+      - name: Build unsigned IPA
         run: |
           cd ios
-          xcodebuild -workspace LxMusicMobile.xcworkspace -scheme LxMusicMobile -configuration Release -archivePath build/LxMusicMobile.xcarchive archive
-          xcodebuild -exportArchive -archivePath build/LxMusicMobile.xcarchive -exportOptionsPlist exportOptions.plist -exportPath build
+          xcodebuild -workspace lxmusic.xcworkspace -scheme lxmusic -configuration Release -derivedDataPath build CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO
+          mkdir Payload
+          cp -R build/Build/Products/Release-iphoneos/lxmusic.app Payload/
+          zip -r lxmusic-troll.ipa Payload/
+          mv lxmusic-troll.ipa ../
+
+      - name: Upload IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: LXMusic-TrollStore-iPA
+          path: lxmusic-troll.ipa
