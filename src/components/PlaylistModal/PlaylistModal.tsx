@@ -4,6 +4,7 @@ import { useTheme } from '@/store/theme/hook'
 import { createStyle } from '@/utils/tools'
 import listState from '@/store/list/state'
 import playerState from '@/store/player/state'
+import { getListMusicSync } from '@/utils/listManage'
 
 export interface PlaylistModalProps {
   onSelect?: (musicInfo: LX.Music.MusicInfo) => void
@@ -21,10 +22,14 @@ const PlaylistModal = forwardRef<PlaylistModalType, PlaylistModalProps>(({ onSel
   useImperativeHandle(ref, () => ({
     show() {
       const listId = listState.activeListId || playerState.playMusicInfo.listId
+      let list: LX.Music.MusicInfo[] = []
       if (listId) {
-        const list = listState.allMusicList.get(listId) || []
-        setMusicList(list)
+        list = getListMusicSync(listId)
       }
+      if (!list.length && playerState.playMusicInfo.isTempPlay) {
+        list = playerState.tempPlayList.map(item => item.musicInfo)
+      }
+      setMusicList(list)
       setVisible(true)
     },
     hide() {
