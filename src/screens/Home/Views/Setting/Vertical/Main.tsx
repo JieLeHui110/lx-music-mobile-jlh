@@ -1,4 +1,4 @@
-import { memo } from 'react'
+import { memo, useMemo } from 'react'
 import { FlatList, type FlatListProps } from 'react-native'
 
 import Basic from '../settings/Basic'
@@ -13,6 +13,7 @@ import Version from '../settings/Version'
 import About from '../settings/About'
 import { createStyle } from '@/utils/tools'
 import { SETTING_SCREENS, type SettingScreenIds } from '../Main'
+import { useSettingValue } from '@/store/setting/hook'
 
 type FlatListType = FlatListProps<SettingScreenIds>
 
@@ -45,12 +46,33 @@ const ListItem = memo(({
 }, () => true)
 
 export default () => {
+  const showDesktopLyricOption = useSettingValue('showDesktopLyricOption')
+  const showUpdateOption = useSettingValue('showUpdateOption')
+  const showAboutOption = useSettingValue('showAboutOption')
+
+  const screens = useMemo(() => {
+    const filtered = [...SETTING_SCREENS]
+    if (!showDesktopLyricOption) {
+      const idx = filtered.indexOf('lyric_desktop')
+      if (idx > -1) filtered.splice(idx, 1)
+    }
+    if (!showUpdateOption) {
+      const idx = filtered.indexOf('version')
+      if (idx > -1) filtered.splice(idx, 1)
+    }
+    if (!showAboutOption) {
+      const idx = filtered.indexOf('about')
+      if (idx > -1) filtered.splice(idx, 1)
+    }
+    return filtered
+  }, [showDesktopLyricOption, showUpdateOption, showAboutOption])
+
   const renderItem: FlatListType['renderItem'] = ({ item }) => <ListItem id={item} />
   const getkey: FlatListType['keyExtractor'] = item => item
 
   return (
     <FlatList
-      data={SETTING_SCREENS}
+      data={screens}
       keyboardShouldPersistTaps={'always'}
       renderItem={renderItem}
       keyExtractor={getkey}

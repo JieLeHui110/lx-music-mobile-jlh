@@ -21,7 +21,7 @@ const PlaylistModal = forwardRef<PlaylistModalType, PlaylistModalProps>(({ onSel
 
   useImperativeHandle(ref, () => ({
     show() {
-      const listId = listState.activeListId || playerState.playMusicInfo.listId
+      const listId = playerState.playMusicInfo.listId || listState.activeListId
       let list: LX.Music.MusicInfo[] = []
       if (listId) {
         list = getListMusicSync(listId)
