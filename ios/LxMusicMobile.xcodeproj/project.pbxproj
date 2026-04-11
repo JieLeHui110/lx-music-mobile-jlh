@@ -493,7 +493,7 @@
 					"-lc++",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = cn.toside.music.mobile;
-				PRODUCT_NAME = LxMusicMobile;
+				PRODUCT_NAME = JLHmusic;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";
@@ -519,7 +519,7 @@
 					"-lc++",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = cn.toside.music.mobile;
-				PRODUCT_NAME = LxMusicMobile;
+				PRODUCT_NAME = JLHmusic;
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";
 			};
