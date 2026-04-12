@@ -1,10 +1,10 @@
-import { useRef, useImperativeHandle, forwardRef, useState, useEffect } from 'react'
+import { useRef, useImperativeHandle, forwardRef, useState } from 'react'
 import { View, Text, FlatList, TouchableOpacity, Modal as RNModal } from 'react-native'
 import { useTheme } from '@/store/theme/hook'
 import { createStyle } from '@/utils/tools'
 import listState from '@/store/list/state'
 import playerState from '@/store/player/state'
-import { getListMusicSync } from '@/utils/listManage'
+import { getListMusicSync, getListMusics } from '@/utils/listManage'
 
 export interface PlaylistModalProps {
   onSelect?: (musicInfo: LX.Music.MusicInfo) => void
@@ -18,19 +18,46 @@ const PlaylistModal = forwardRef<PlaylistModalType, PlaylistModalProps>(({ onSel
   const theme = useTheme()
   const [visible, setVisible] = useState(false)
   const [musicList, setMusicList] = useState<LX.Music.MusicInfo[]>([])
+  const [listTitle, setListTitle] = useState('当前播放列表')
 
   useImperativeHandle(ref, () => ({
     show() {
-      const listId = playerState.playMusicInfo.listId || listState.activeListId
-      let list: LX.Music.MusicInfo[] = []
-      if (listId) {
-        list = getListMusicSync(listId)
+      const listId = playerState.playMusicInfo.listId || playerState.playInfo.playerListId
+      const loadList = async () => {
+        let list: LX.Music.MusicInfo[] = []
+        let title = '当前播放列表'
+        let targetListId = listId
+
+        // 检查当前播放的歌曲是否在收藏列表中
+        const loveList = listState.lists.love || []
+        const isInLove = loveList.some(music => music.id === playerState.musicInfo.id)
+
+        if (isInLove) {
+          title = listState.allList.find(item => item.id === 'love')?.name ?? '我的收藏'
+          list = getListMusicSync('love')
+          if (!list.length) {
+            list = await getListMusics('love')
+          }
+          targetListId = 'love'
+        } else if (listId) {
+          title = listState.allList.find(item => item.id === listId)?.name ?? title
+          list = getListMusicSync(listId)
+          if (!list.length) {
+            list = await getListMusics(listId)
+          }
+        }
+
+        if (!list.length && playerState.playMusicInfo.isTempPlay) {
+          title = listState.tempList.name
+          list = playerState.tempPlayList.map(item => item.musicInfo)
+        }
+
+        setListTitle(title)
+        setMusicList(list)
       }
-      if (!list.length && playerState.playMusicInfo.isTempPlay) {
-        list = playerState.tempPlayList.map(item => item.musicInfo)
-      }
-      setMusicList(list)
+
       setVisible(true)
+      void loadList()
     },
     hide() {
       setVisible(false)
@@ -68,13 +95,19 @@ const PlaylistModal = forwardRef<PlaylistModalType, PlaylistModalProps>(({ onSel
     >
       <View style={styles.overlay}>
         <View style={[styles.container, { backgroundColor: theme['c-content-background'] }]}>
-          <Text style={[styles.header, { color: theme['c-font'] }]}>当前播放列表</Text>
-          <FlatList
-            data={musicList}
-            renderItem={renderItem}
-            keyExtractor={(item) => item.id}
-            style={styles.list}
-          />
+          <Text style={[styles.header, { color: theme['c-font'] }]}>{listTitle}</Text>
+          {musicList.length ? (
+            <FlatList
+              data={musicList}
+              renderItem={renderItem}
+              keyExtractor={(item) => item.id}
+              style={styles.list}
+            />
+          ) : (
+            <View style={styles.emptyContainer}>
+              <Text style={[styles.emptyText, { color: theme['c-font-alpha-700'] }]}>当前播放列表暂无歌曲</Text>
+            </View>
+          )}
           <TouchableOpacity style={[styles.closeBtn, { backgroundColor: theme['c-primary'] }]} onPress={() => setVisible(false)}>
             <Text style={[styles.closeText, { color: theme['c-primary-font'] }]}>关闭</Text>
           </TouchableOpacity>
@@ -116,6 +149,15 @@ const styles = createStyle({
   },
   singer: {
     fontSize: 14,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    minHeight: 120,
+  },
+  emptyText: {
+    fontSize: 16,
   },
   closeBtn: {
     marginTop: 20,

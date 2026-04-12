@@ -8,30 +8,8 @@ import { updateSetting } from '@/core/common'
 const Setting = () => {
   const theme = useTheme()
 
-  const showDesktopLyric = useSettingValue('setting.showDesktopLyric')
-  const showUpdate = useSettingValue('setting.showUpdate')
-  const showAbout = useSettingValue('setting.showAbout')
-
   return (
     <ScrollView style={{ ...styles.container, backgroundColor: theme['c-content-background'] }}>
-      <SettingItem
-        label="显示桌面歌词选项"
-        type="switch"
-        value={showDesktopLyric}
-        onChange={(value) => updateSetting({ 'setting.showDesktopLyric': value })}
-      />
-      <SettingItem
-        label="显示软件更新选项"
-        type="switch"
-        value={showUpdate}
-        onChange={(value) => updateSetting({ 'setting.showUpdate': value })}
-      />
-      <SettingItem
-        label="显示关于 JLHmusic 选项"
-        type="switch"
-        value={showAbout}
-        onChange={(value) => updateSetting({ 'setting.showAbout': value })}
-      />
     </ScrollView>
   )
 }

@@ -46,33 +46,12 @@ const ListItem = memo(({
 }, () => true)
 
 export default () => {
-  const showDesktopLyricOption = useSettingValue('showDesktopLyricOption')
-  const showUpdateOption = useSettingValue('showUpdateOption')
-  const showAboutOption = useSettingValue('showAboutOption')
-
-  const screens = useMemo(() => {
-    const filtered = [...SETTING_SCREENS]
-    if (!showDesktopLyricOption) {
-      const idx = filtered.indexOf('lyric_desktop')
-      if (idx > -1) filtered.splice(idx, 1)
-    }
-    if (!showUpdateOption) {
-      const idx = filtered.indexOf('version')
-      if (idx > -1) filtered.splice(idx, 1)
-    }
-    if (!showAboutOption) {
-      const idx = filtered.indexOf('about')
-      if (idx > -1) filtered.splice(idx, 1)
-    }
-    return filtered
-  }, [showDesktopLyricOption, showUpdateOption, showAboutOption])
-
   const renderItem: FlatListType['renderItem'] = ({ item }) => <ListItem id={item} />
   const getkey: FlatListType['keyExtractor'] = item => item
 
   return (
     <FlatList
-      data={screens}
+      data={SETTING_SCREENS}
       keyboardShouldPersistTaps={'always'}
       renderItem={renderItem}
       keyExtractor={getkey}
