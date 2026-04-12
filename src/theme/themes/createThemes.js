@@ -205,7 +205,7 @@ const defaultThemes = [
   },
   {
     id: 'black',
-    name: '黑灯瞎火',
+    name: '纯黑模式',
     isDark: true,
     config: {
       primary: 'rgb(190, 190, 190)',
@@ -223,7 +223,7 @@ const defaultThemes = [
   },
   {
     id: 'mid_autumn',
-    name: '月里嫦娥',
+    name: '雪莉网袜',
     isDark: false,
     config: {
       primary: 'rgb(74, 55, 82)',
@@ -242,7 +242,7 @@ const defaultThemes = [
   },
   {
     id: 'naruto',
-    name: '木叶之村',
+    name: '木叶黑丝',
     isDark: false,
     config: {
       primary: 'rgb(87, 144, 167)',
@@ -260,7 +260,7 @@ const defaultThemes = [
   },
   {
     id: 'china_ink',
-    name: '近墨者黑',
+    name: '蜡笔小新',
     isDark: false,
     config: {
       primary: 'rgba(47, 47, 47, 1)',
@@ -279,7 +279,7 @@ const defaultThemes = [
   },
   {
     id: 'happy_new_year',
-    name: '新年快乐',
+    name: '美丽蜗居',
     isDark: false,
     config: {
       primary: 'rgb(192, 57, 43)',
